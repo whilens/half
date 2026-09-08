@@ -1,0 +1,191 @@
+:root {
+  font-family: Segoe UI, system-ui, sans-serif;
+  color: #1a1d23;
+  background: #eef1f6;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+}
+
+.page {
+  max-width: 1100px;
+  height: 100%;
+  margin: 0 auto;
+  padding: 24px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+header {
+  flex-shrink: 0;
+}
+
+header h1 {
+  margin: 0 0 8px;
+  font-size: 24px;
+}
+
+.hint,
+.queue,
+.sub,
+.msg {
+  margin: 0 0 8px;
+  color: #5b6370;
+  font-size: 14px;
+}
+
+.msg {
+  color: #9b2c2c;
+}
+
+.msg.ok {
+  color: #276749;
+}
+
+.panes {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.pane {
+  background: #fff;
+  border: 1px solid #d7dde7;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.pane h2 {
+  margin: 0 0 12px;
+  font-size: 18px;
+}
+
+.add {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.filter,
+.add input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #c9d1de;
+  border-radius: 8px;
+  font: inherit;
+  margin-bottom: 10px;
+}
+
+.add input {
+  margin-bottom: 0;
+}
+
+button {
+  border: 0;
+  background: #2b6cb0;
+  color: #fff;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.list {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  border: 1px solid #e3e8f0;
+  border-radius: 8px;
+  overscroll-behavior: contain;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.row.clickable {
+  cursor: pointer;
+}
+
+.row.clickable:hover,
+.row.drag:hover {
+  background: #f4f7fb;
+}
+
+.row.drag {
+  cursor: grab;
+}
+
+.row.pending {
+  color: #6b7280;
+  font-style: italic;
+}
+
+.tag {
+  font-size: 12px;
+  color: #7c8494;
+}
+
+.icon-btn {
+  background: transparent;
+  color: #6b7280;
+  padding: 0 6px;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.icon-btn:hover {
+  color: #9b2c2c;
+}
+
+.empty,
+.more {
+  padding: 16px;
+  color: #8a93a3;
+  font-size: 14px;
+}
+
+.drop-end {
+  height: 24px;
+}
+
+@media (max-width: 800px) {
+  html,
+  body,
+  #root,
+  .page {
+    height: auto;
+  }
+
+  .panes {
+    grid-template-columns: 1fr;
+    flex: none;
+  }
+
+  .list {
+    height: 50vh;
+    flex: none;
+  }
+}
