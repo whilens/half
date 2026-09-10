@@ -1,13 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import {
-  enqueueAdd,
-  enqueueFetch,
-  enqueueReorder,
-  enqueueSelect,
-  enqueueUnselect,
-  startQueue,
-  subscribe,
-} from "./queue.js";
+import { addId, fetchList, reorderItem, selectId, unselectId } from "./api.js";
 
 function PaneList({
   items,
@@ -135,7 +127,6 @@ export default function App() {
   const [newId, setNewId] = useState("");
   const [message, setMessage] = useState("");
   const [messageOk, setMessageOk] = useState(false);
-  const [status, setStatus] = useState({ adds: 0, changes: 0, fetches: 0 });
 
   const leftGen = useRef(0);
   const rightGen = useRef(0);
@@ -144,14 +135,9 @@ export default function App() {
   const knownExtra = useRef(new Set());
 
   useEffect(() => {
-    startQueue();
-    return subscribe(setStatus);
-  }, []);
-
-  useEffect(() => {
     const gen = ++leftGen.current;
-    enqueueFetch("left", leftQ, 0).then((res) => {
-      if (gen !== leftGen.current || res.cancelled) return;
+    fetchList("left", leftQ, 0).then((res) => {
+      if (gen !== leftGen.current) return;
       setLeft(res.items || []);
       setLeftMore(Boolean(res.hasMore));
     });
@@ -159,8 +145,8 @@ export default function App() {
 
   useEffect(() => {
     const gen = ++rightGen.current;
-    enqueueFetch("right", rightQ, 0).then((res) => {
-      if (gen !== rightGen.current || res.cancelled) return;
+    fetchList("right", rightQ, 0).then((res) => {
+      if (gen !== rightGen.current) return;
       setRight(res.items || []);
       setRightMore(Boolean(res.hasMore));
     });
@@ -171,9 +157,9 @@ export default function App() {
       if (!leftMore || leftBusy.current) return;
       leftBusy.current = true;
       const gen = leftGen.current;
-      enqueueFetch("left", leftQ, left.length).then((res) => {
+      fetchList("left", leftQ, left.length).then((res) => {
         leftBusy.current = false;
-        if (gen !== leftGen.current || res.cancelled) return;
+        if (gen !== leftGen.current) return;
         setLeft((prev) => [...prev, ...(res.items || []).filter((id) => !prev.includes(id))]);
         setLeftMore(Boolean(res.hasMore));
       });
@@ -182,9 +168,9 @@ export default function App() {
     if (!rightMore || rightBusy.current) return;
     rightBusy.current = true;
     const gen = rightGen.current;
-    enqueueFetch("right", rightQ, right.length).then((res) => {
+    fetchList("right", rightQ, right.length).then((res) => {
       rightBusy.current = false;
-      if (gen !== rightGen.current || res.cancelled) return;
+      if (gen !== rightGen.current) return;
       setRight((prev) => [...prev, ...(res.items || []).filter((id) => !prev.includes(id))]);
       setRightMore(Boolean(res.hasMore));
     });
@@ -199,7 +185,7 @@ export default function App() {
         return [...prev, id];
       });
     }
-    enqueueSelect(id);
+    selectId(id);
   }
 
   function unselectItem(id) {
@@ -210,7 +196,7 @@ export default function App() {
       if (leftMore && (prev.length === 0 || id > prev[prev.length - 1])) return prev;
       return [...prev, id].sort((a, b) => a - b);
     });
-    enqueueUnselect(id);
+    unselectId(id);
   }
 
   function reorderRight(op) {
@@ -227,7 +213,7 @@ export default function App() {
       }
       return next;
     });
-    enqueueReorder(op);
+    reorderItem(op);
   }
 
   async function onAdd(e) {
@@ -249,7 +235,12 @@ export default function App() {
     }
     setPendingAdds((prev) => [...prev, id]);
     setNewId("");
-    const result = await enqueueAdd(id);
+    let result;
+    try {
+      result = await addId(id);
+    } catch {
+      result = { ok: false };
+    }
     setPendingAdds((prev) => prev.filter((x) => x !== id));
     if (result.duplicate) {
       setMessage(`ID ${id} уже существует`);
@@ -262,8 +253,9 @@ export default function App() {
     knownExtra.current.add(id);
     setMessageOk(true);
     setMessage(`ID ${id} добавлен`);
-    enqueueFetch("left", leftQ, 0).then((res) => {
-      if (res.cancelled) return;
+    const gen = ++leftGen.current;
+    fetchList("left", leftQ, 0).then((res) => {
+      if (gen !== leftGen.current) return;
       setLeft(res.items || []);
       setLeftMore(Boolean(res.hasMore));
     });
@@ -276,12 +268,8 @@ export default function App() {
       <header>
         <h1>Список элементов</h1>
         <p className="hint">
-          Добавление уходит на сервер раз в 10 секунд, остальное — раз в секунду. Поиск не
-          сохраняется.
-        </p>
-        <p className="queue">
-          В очереди: добавлений {status.adds}, изменений {status.changes}, запросов{" "}
-          {status.fetches}
+          Добавление применяется на сервере раз в 10 секунд, выбор и порядок — раз в секунду. Поиск
+          не сохраняется и запрашивается сразу.
         </p>
       </header>
 
